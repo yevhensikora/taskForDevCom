@@ -4,15 +4,21 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.geometry.HPos;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -27,8 +33,9 @@ public class PuzzlePieces extends Application {
     public void init(Stage primaryStage) {
 
         HBox buttonBox = new HBox(8);
-        VBox vBox = new VBox(10);
-        Group root = new Group();
+        StackPane deskPane = new StackPane();
+        VBox root = new VBox();
+
         primaryStage.setScene(new Scene(root));
 
         Image image;
@@ -47,14 +54,21 @@ public class PuzzlePieces extends Application {
 
         buttonBox.getChildren().addAll(shuffleButton(), solveButton(), chooseImageButton(primaryStage));
 
-        vBox.getChildren().addAll(desk, buttonBox);
-        root.getChildren().addAll(vBox);
+        deskPane.getChildren().add(desk);
+        deskPane.setStyle("-fx-background-color: lightgray; -fx-padding: 10px;");
+        StackPane.setAlignment(desk, Pos.CENTER);
+        buttonBox.setAlignment(Pos.BOTTOM_CENTER);
+        root.getChildren().addAll(deskPane, buttonBox);
+
+        VBox.setVgrow(deskPane, Priority.ALWAYS);
+
+        primaryStage.setTitle("Puzzle Pieces");
+        primaryStage.show();
     }
 
     @Override
     public void start(Stage primaryStage) {
         init(primaryStage);
-        primaryStage.show();
     }
 
     public void buildPieces(double numOfColumns, double numOfRows, Image image) {
@@ -84,8 +98,8 @@ public class PuzzlePieces extends Application {
 
             if (selectedFile != null) {
                 try {
-                    Image newImage = null;
-                    newImage = new Image(new FileInputStream(selectedFile));
+                    Image newImage;
+                    newImage = new Image(new FileInputStream(selectedFile), 1400, 700, false, false);
                     desk.getChildren().clear(); // Clear the previous pieces
                     pieces.clear();
                     int numOfColumns1 = (int) (newImage.getWidth() / Piece.SIZE);
@@ -145,6 +159,10 @@ public class PuzzlePieces extends Application {
             timeline.playFromStart();
         });
         return shuffleButton;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 }
 
