@@ -1,16 +1,15 @@
-package com.example.taskfordevcom;
+package com.example.taskfordevcom.service;
 
+import com.example.taskfordevcom.domain.Desk;
+import com.example.taskfordevcom.domain.piece.Piece;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
-import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -18,18 +17,18 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class PuzzlePieces extends Application {
     private Timeline timeline;
     private Desk desk;
     final List<Piece> pieces = new ArrayList<>();
-
+    private static final String PICTURE_URL = "src/main/resources/images/image.png";
     public void init(Stage primaryStage) {
 
         HBox buttonBox = new HBox(8);
@@ -40,7 +39,7 @@ public class PuzzlePieces extends Application {
 
         Image image;
         try {
-            image = new Image(new FileInputStream("src/main/resources/images/image.png"));
+            image = new Image(new FileInputStream(PICTURE_URL));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -76,9 +75,17 @@ public class PuzzlePieces extends Application {
             for (int row = 0; row < numOfRows; row++) {
                 int x = col * Piece.SIZE;
                 int y = row * Piece.SIZE;
-                final Piece piece = new Piece(image, x, y, row > 0, col > 0,
-                        row < numOfRows - 1, col < numOfColumns - 1,
-                        desk.getWidth(), desk.getHeight());
+                final Piece piece = Piece.builder()
+                        .image(image)
+                        .correctX(x)
+                        .correctY(y)
+                        .hasTopTab(row > 0)
+                        .hasLeftTab(col > 0)
+                        .hasBottomTab(row < numOfRows - 1)
+                        .hasRightTab(col < numOfColumns - 1)
+                        .deskWidth(desk.getWidth())
+                        .deskHeight(desk.getHeight())
+                        .build();
                 pieces.add(piece);
             }
         }
@@ -86,8 +93,10 @@ public class PuzzlePieces extends Application {
 
     public Button chooseImageButton(Stage primaryStage) {
         Button chooseImageButton = new Button("Choose Image");
-        chooseImageButton.setStyle("-fx-font-size: 2em");
-
+        chooseImageButton.setStyle("-fx-font-size: 2em; -fx-background-color: #830101; " +
+                                   "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
+                                   "-fx-border-width: 2px; -fx-padding: 5px 10px; " +
+                                   "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
         chooseImageButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Виберіть картинку");
@@ -119,8 +128,10 @@ public class PuzzlePieces extends Application {
 
     public Button solveButton() {
         Button solveButton = new Button("Solve");
-        solveButton.setStyle("-fx-font-size: 2em");
-
+        solveButton.setStyle("-fx-font-size: 2em; -fx-background-color: #830101; " +
+                             "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
+                             "-fx-border-width: 2px; -fx-padding: 5px 10px;" +
+                             "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
         solveButton.setOnAction(actionEvent -> {
             if (timeline != null) timeline.stop();
             timeline = new Timeline();
@@ -138,8 +149,10 @@ public class PuzzlePieces extends Application {
 
     public Button shuffleButton() {
         Button shuffleButton = new Button("Shuffle");
-        shuffleButton.setStyle("-fx-font-size: 2em;");
-
+        shuffleButton.setStyle("-fx-font-size: 2em; -fx-background-color: #830101; " +
+                               "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
+                               "-fx-border-width: 2px; -fx-padding: 5px 10px;" +
+                               "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
         shuffleButton.setOnAction(actionEvent -> {
             if (timeline != null) timeline.stop();
             timeline = new Timeline();
@@ -159,10 +172,6 @@ public class PuzzlePieces extends Application {
             timeline.playFromStart();
         });
         return shuffleButton;
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
 

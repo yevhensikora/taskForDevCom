@@ -1,5 +1,6 @@
-package com.example.taskfordevcom;
+package com.example.taskfordevcom.domain;
 
+import com.example.taskfordevcom.domain.piece.Piece;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.LineTo;
@@ -7,6 +8,12 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 
 public class Desk extends Pane {
+
+    private static final String STYLE = """
+            -fx-background-color: #cccccc;
+            -fx-border-color: #464646;
+            -fx-effect: innershadow(two-pass-box , rgba(0,0,0,0.8) , 15, 0.0 , 0 , 4 )
+            """;
     private int numColumns;
     private int numRows;
 
@@ -14,9 +21,7 @@ public class Desk extends Pane {
         this.numColumns = numOfColumns;
         this.numRows = numOfRows;
 
-        setStyle("-fx-background-color: #cccccc; " +
-                "-fx-border-color: #464646; " +
-                "-fx-effect: innershadow(two-pass-box , rgba(0,0,0,0,8) , 15, 0.0 , 0 , 4 );");
+        setStyle(STYLE);
         setPrefSize(Piece.SIZE * numOfColumns, Piece.SIZE * numOfRows);
 
         double DESK_WIDTH = Piece.SIZE * numOfColumns;
@@ -28,7 +33,7 @@ public class Desk extends Pane {
         drawGrid();
     }
 
-    void drawGrid() {
+    public void drawGrid() {
 
         getChildren().removeIf(node -> node instanceof Path);
 
