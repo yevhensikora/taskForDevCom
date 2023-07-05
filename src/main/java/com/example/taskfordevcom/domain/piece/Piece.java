@@ -14,6 +14,8 @@ import javafx.scene.shape.Shape;
 import javafx.geometry.Point2D;
 import lombok.*;
 
+import java.util.Random;
+
 
 @Builder
 public class Piece extends Parent {
@@ -28,14 +30,19 @@ public class Piece extends Parent {
     private final boolean hasRightTab;
     private final double deskWidth;
     private final double deskHeight;
-
     private double startDragX;
     private double startDragY;
     private Point2D dragAnchor;
 
-    public Piece(Image image, double correctX, double correctY,
-                 boolean topTab, boolean leftTab, boolean bottomTab, boolean rightTab,
-                 double deskWidth, double deskHeight,double startDragX,double startDragY,Point2D dragAnchor){
+
+    private double ellipseRadiusX;
+    private double ellipseRadiusY;
+    private Piece leftNeighbor;
+    private Piece topNeighbor;
+
+    public Piece(Image image, double correctX, double correctY, boolean topTab, boolean leftTab, boolean bottomTab, boolean rightTab,
+                 double deskWidth, double deskHeight,double startDragX,double startDragY,Point2D dragAnchor,double ellipseRadiusX,double ellipseRadiusY,
+                 Piece leftNeighbor, Piece topNeighbor){
         this.image = image;
         this.correctX = correctX;
         this.correctY = correctY;
@@ -48,7 +55,12 @@ public class Piece extends Parent {
         this.startDragX = startDragX;
         this.startDragY = startDragY;
         this.dragAnchor = dragAnchor;
+        this.ellipseRadiusX = topTab || bottomTab ? correctX : 0;
+        this.ellipseRadiusY = leftTab || rightTab ? correctY : 0;
+        this.leftNeighbor = leftNeighbor;
+        this.topNeighbor = topNeighbor;
 
+        calculateTabSize();
         initPiece();
     }
 
@@ -106,121 +118,133 @@ public class Piece extends Parent {
     private Shape createPiece() {
         Shape shape = createPieceRectangle();
         if (hasRightTab) {
-            shape = Shape.union(shape,
-                    createPieceTab(PieceTab.builder()
-                            .ellipse(TabEllipse.builder()
-                                    .ellipseCenterX(69.5f)
-                                    .ellipseCenterY(0f)
-                                    .ellipseRadiusX(10f)
-                                    .ellipseRadiusY(17.5f)
-                                    .build())
-                            .rectangle(TabRectangle.builder()
-                                    .rectangleX(50f)
-                                    .rectangleY(-12.5f)
-                                    .rectangleWidth(11.5f)
-                                    .rectangleHeight(25f)
-                                    .build())
-                            .circle1(TabCircle.builder()
-                                    .circleCenterX(56.25f)
-                                    .circleCenterY(-14f)
-                                    .circleRadius(6.25f)
-                                    .build())
-                            .circle2(TabCircle.builder()
-                                    .circleCenterX(56.25f)
-                                    .circleCenterY(14f)
-                                    .circleRadius(6.25f)
-                                    .build())
-                            .build()));
-
+            shape = Shape.union(shape, createRightTab());
         }
         if (hasBottomTab) {
-            shape = Shape.union(shape,
-                    createPieceTab(PieceTab.builder()
-                            .ellipse(TabEllipse.builder()
-                                    .ellipseCenterX(0f)
-                                    .ellipseCenterY(69.5f)
-                                    .ellipseRadiusX(17.5f)
-                                    .ellipseRadiusY(10f)
-                                    .build())
-                            .rectangle(TabRectangle.builder()
-                                    .rectangleX(-12.5f)
-                                    .rectangleY(50f)
-                                    .rectangleWidth(25f)
-                                    .rectangleHeight(11f)
-                                    .build())
-                            .circle1(TabCircle.builder()
-                                    .circleCenterX(-14f)
-                                    .circleCenterY(56.25f)
-                                    .circleRadius(6.25f)
-                                    .build())
-                            .circle2(TabCircle.builder()
-                                    .circleCenterX(14f)
-                                    .circleCenterY(56.25f)
-                                    .circleRadius(6.25f)
-                                    .build())
-                            .build()));
+            shape = Shape.union(shape, createBottomTab());
         }
         if (hasLeftTab) {
-            shape = Shape.subtract(shape,
-                    createPieceTab(PieceTab.builder()
-                            .ellipse(TabEllipse.builder()
-                                    .ellipseCenterX(-31)
-                                    .ellipseCenterY(0)
-                                    .ellipseRadiusX(10)
-                                    .ellipseRadiusY(17.5)
-                                    .build())
-                            .rectangle(TabRectangle.builder()
-                                    .rectangleX(-50)
-                                    .rectangleY(-12.5)
-                                    .rectangleWidth(11)
-                                    .rectangleHeight(25)
-                                    .build())
-                            .circle1(TabCircle.builder()
-                                    .circleCenterX(-43.75)
-                                    .circleCenterY(-14)
-                                    .circleRadius(6.25)
-                                    .build())
-                            .circle2(TabCircle.builder()
-                                    .circleCenterX(-43.75)
-                                    .circleCenterY(14)
-                                    .circleRadius(6.25)
-                                    .build())
-                            .build()));
+            shape = Shape.subtract(shape, createLeftTab());
         }
         if (hasTopTab) {
-            shape = Shape.subtract(shape,
-                    createPieceTab(PieceTab.builder()
-                            .ellipse(TabEllipse.builder()
-                                    .ellipseCenterX(0)
-                                    .ellipseCenterY(-31)
-                                    .ellipseRadiusX(17.5)
-                                    .ellipseRadiusY(10)
-                                    .build())
-                            .rectangle(TabRectangle.builder()
-                                    .rectangleX(-12.5)
-                                    .rectangleY(-50)
-                                    .rectangleWidth(25)
-                                    .rectangleHeight(12.5)
-                                    .build())
-                            .circle1(TabCircle.builder()
-                                    .circleCenterX(-14)
-                                    .circleCenterY(-43.75)
-                                    .circleRadius(6.25)
-                                    .build())
-                            .circle2(TabCircle.builder()
-                                    .circleCenterX(14)
-                                    .circleCenterY(-43.75)
-                                    .circleRadius(6.25)
-                                    .build())
-                            .build()));
+            shape = Shape.subtract(shape, createTopTab());
         }
 
         shape.setTranslateX(correctX);
         shape.setTranslateY(correctY);
-        shape.setLayoutX(50f);
-        shape.setLayoutY(50f);
+        shape.setLayoutX(50);
+        shape.setLayoutY(50);
         return shape;
     }
+
+    private Shape createRightTab() {
+        return createPieceTab(PieceTab.builder()
+                .ellipse(TabEllipse.builder()
+                        .ellipseCenterX(69.5)
+                        .ellipseCenterY(0)
+                        .ellipseRadiusX(10)
+                        .ellipseRadiusY(ellipseRadiusY)
+                        .build())
+                .rectangle(TabRectangle.builder()
+                        .rectangleX(50)
+                        .rectangleY(-12.5)
+                        .rectangleWidth(11.5)
+                        .rectangleHeight(25)
+                        .build())
+                .circle1(TabCircle.builder()
+                        .circleCenterX(56.25)
+                        .circleCenterY(-14)
+                        .circleRadius(6.25)
+                        .build())
+                .circle2(TabCircle.builder()
+                        .circleCenterX(56.25)
+                        .circleCenterY(14)
+                        .circleRadius(6.25)
+                        .build())
+                .build());
+    }
+
+    private Shape createBottomTab() {
+        return createPieceTab(PieceTab.builder()
+                .ellipse(TabEllipse.builder()
+                        .ellipseCenterX(0)
+                        .ellipseCenterY(69.5)
+                        .ellipseRadiusX(ellipseRadiusX)
+                        .ellipseRadiusY(10)
+                        .build())
+                .rectangle(TabRectangle.builder()
+                        .rectangleX(-12.5)
+                        .rectangleY(50)
+                        .rectangleWidth(25)
+                        .rectangleHeight(11)
+                        .build())
+                .circle1(TabCircle.builder()
+                        .circleCenterX(-14)
+                        .circleCenterY(56.25)
+                        .circleRadius(6.25)
+                        .build())
+                .circle2(TabCircle.builder()
+                        .circleCenterX(14)
+                        .circleCenterY(56.25)
+                        .circleRadius(6.25)
+                        .build())
+                .build());
+    }
+
+    private Shape createLeftTab() {
+        return createPieceTab(PieceTab.builder()
+                .ellipse(TabEllipse.builder()
+                        .ellipseCenterX(-31)
+                        .ellipseCenterY(0)
+                        .ellipseRadiusX(10)
+                        .ellipseRadiusY(ellipseRadiusY)
+                        .build())
+                .rectangle(TabRectangle.builder()
+                        .rectangleX(-50)
+                        .rectangleY(-12.5)
+                        .rectangleWidth(11)
+                        .rectangleHeight(25)
+                        .build())
+                .circle1(TabCircle.builder()
+                        .circleCenterX(-43.75)
+                        .circleCenterY(-14)
+                        .circleRadius(6.25)
+                        .build())
+                .circle2(TabCircle.builder()
+                        .circleCenterX(-43.75)
+                        .circleCenterY(14)
+                        .circleRadius(6.25)
+                        .build())
+                .build());
+    }
+
+    private Shape createTopTab() {
+        return createPieceTab(PieceTab.builder()
+                .ellipse(TabEllipse.builder()
+                        .ellipseCenterX(0)
+                        .ellipseCenterY(-31)
+                        .ellipseRadiusX(ellipseRadiusX)
+                        .ellipseRadiusY(10)
+                        .build())
+                .rectangle(TabRectangle.builder()
+                        .rectangleX(-12.5)
+                        .rectangleY(-50)
+                        .rectangleWidth(25)
+                        .rectangleHeight(12.5)
+                        .build())
+                .circle1(TabCircle.builder()
+                        .circleCenterX(-14)
+                        .circleCenterY(-43.75)
+                        .circleRadius(6.25)
+                        .build())
+                .circle2(TabCircle.builder()
+                        .circleCenterX(14)
+                        .circleCenterY(-43.75)
+                        .circleRadius(6.25)
+                        .build())
+                .build());
+    }
+
 
     private Rectangle createPieceRectangle() {
         Rectangle rec = new Rectangle();
@@ -238,7 +262,7 @@ public class Piece extends Parent {
         TabCircle tabCircle2 = pieceTab.getCircle2();
 
         Ellipse ellipse = new Ellipse(tabEllipse.getEllipseCenterX(), tabEllipse.getEllipseCenterY(),
-                tabEllipse.getEllipseRadiusX(), tabEllipse.getEllipseRadiusY());
+                tabEllipse.getEllipseRadiusX(), tabEllipse.getEllipseRadiusY() );
         Rectangle rectangle = new Rectangle(tabRectangle.getRectangleX(), tabRectangle.getRectangleY(),
                 tabRectangle.getRectangleWidth(), tabRectangle.getRectangleHeight());
         Circle circle1 = new Circle(tabCircle1.getCircleCenterX(), tabCircle1.getCircleCenterY(), tabCircle1.getCircleRadius());
@@ -248,6 +272,39 @@ public class Piece extends Parent {
         tab = Shape.subtract(tab, circle1);
         tab = Shape.subtract(tab, circle2);
         return tab;
+    }
+
+    private void calculateTabSize() {
+        double lowerLimitX = 7;
+        double upperLimitX = 23;
+
+        double lowerLimitY = 7;
+        double upperLimitY = 23;
+
+
+        Random random = new Random();
+        double randomValueX = lowerLimitX + (upperLimitX - lowerLimitX) * random.nextDouble();
+        double randomValueY = lowerLimitY + (upperLimitY - lowerLimitY) * random.nextDouble();
+
+        if (hasRightTab) {
+            ellipseRadiusY = randomValueY;
+        }
+
+        if (hasBottomTab) {
+            ellipseRadiusX = randomValueX;
+        }
+
+         if (hasLeftTab) {
+            if (leftNeighbor != null) {
+                ellipseRadiusY = leftNeighbor.ellipseRadiusY;
+            }
+        }
+
+        if (hasTopTab) {
+            if (topNeighbor != null) {
+                ellipseRadiusX = topNeighbor.ellipseRadiusX;
+            }
+        }
     }
 
     public void setActive() {

@@ -70,21 +70,32 @@ public class PuzzlePieces extends Application {
         init(primaryStage);
     }
 
-    public void buildPieces(double numOfColumns, double numOfRows, Image image) {
+    public void buildPieces(int numOfColumns, int numOfRows, Image image) {
         for (int col = 0; col < numOfColumns; col++) {
             for (int row = 0; row < numOfRows; row++) {
                 int x = col * Piece.SIZE;
                 int y = row * Piece.SIZE;
+
+                boolean hasTopTab = row > 0;
+                boolean hasLeftTab = col > 0;
+                boolean hasBottomTab = row < numOfRows - 1;
+                boolean hasRightTab = col < numOfColumns - 1;
+
+                Piece leftNeighbor = col > 0 ? pieces.get((col - 1) * numOfRows + row) : null;
+                Piece topNeighbor = row > 0 ? pieces.get(col * numOfRows + (row - 1)) : null;
+
                 final Piece piece = Piece.builder()
                         .image(image)
                         .correctX(x)
                         .correctY(y)
-                        .hasTopTab(row > 0)
-                        .hasLeftTab(col > 0)
-                        .hasBottomTab(row < numOfRows - 1)
-                        .hasRightTab(col < numOfColumns - 1)
+                        .hasTopTab(hasTopTab)
+                        .hasLeftTab(hasLeftTab)
+                        .hasBottomTab(hasBottomTab)
+                        .hasRightTab(hasRightTab)
                         .deskWidth(desk.getWidth())
                         .deskHeight(desk.getHeight())
+                        .leftNeighbor(leftNeighbor)
+                        .topNeighbor(topNeighbor)
                         .build();
                 pieces.add(piece);
             }
