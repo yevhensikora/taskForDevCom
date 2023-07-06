@@ -39,10 +39,13 @@ public class Piece extends Parent {
     private double ellipseRadiusY;
     private Piece leftNeighbor;
     private Piece topNeighbor;
+    private double neighborX;
+    private double neighborY;
+
 
     public Piece(Image image, double correctX, double correctY, boolean topTab, boolean leftTab, boolean bottomTab, boolean rightTab,
                  double deskWidth, double deskHeight,double startDragX,double startDragY,Point2D dragAnchor,double ellipseRadiusX,double ellipseRadiusY,
-                 Piece leftNeighbor, Piece topNeighbor){
+                 Piece leftNeighbor, Piece topNeighbor, double neighborX, double neighborY){
         this.image = image;
         this.correctX = correctX;
         this.correctY = correctY;
@@ -197,7 +200,7 @@ public class Piece extends Parent {
                         .ellipseCenterX(-31)
                         .ellipseCenterY(0)
                         .ellipseRadiusX(10)
-                        .ellipseRadiusY(ellipseRadiusY)
+                        .ellipseRadiusY(neighborY)
                         .build())
                 .rectangle(TabRectangle.builder()
                         .rectangleX(-50)
@@ -223,7 +226,7 @@ public class Piece extends Parent {
                 .ellipse(TabEllipse.builder()
                         .ellipseCenterX(0)
                         .ellipseCenterY(-31)
-                        .ellipseRadiusX(ellipseRadiusX)
+                        .ellipseRadiusX(neighborX)
                         .ellipseRadiusY(10)
                         .build())
                 .rectangle(TabRectangle.builder()
@@ -296,13 +299,13 @@ public class Piece extends Parent {
 
          if (hasLeftTab) {
             if (leftNeighbor != null) {
-                ellipseRadiusY = leftNeighbor.ellipseRadiusY;
+                neighborY = leftNeighbor.ellipseRadiusY;
             }
         }
 
         if (hasTopTab) {
             if (topNeighbor != null) {
-                ellipseRadiusX = topNeighbor.ellipseRadiusX;
+                neighborX = topNeighbor.ellipseRadiusX;
             }
         }
     }
