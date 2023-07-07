@@ -16,16 +16,20 @@ import lombok.*;
 
 import java.util.Random;
 
+import static com.example.taskfordevcom.domain.piece.TabType.*;
 
+@Getter
+@Setter
 @Builder
+@AllArgsConstructor
 public class Piece extends Parent {
 
     public static final int SIZE = 100;
     private Image image;
     private final double correctX;
     private final double correctY;
-    private final boolean hasTopTab;
-    private final boolean hasLeftTab;
+    public final boolean hasTopTab;
+    public final boolean hasLeftTab;
     private final boolean hasBottomTab;
     private final boolean hasRightTab;
     private final double deskWidth;
@@ -42,32 +46,21 @@ public class Piece extends Parent {
     private double neighborX;
     private double neighborY;
 
+    private PieceTab topTab;
+    private PieceTab rightTab;
+    private PieceTab leftTab;
+    private PieceTab bottomTab;
 
-    public Piece(Image image, double correctX, double correctY, boolean topTab, boolean leftTab, boolean bottomTab, boolean rightTab,
-                 double deskWidth, double deskHeight,double startDragX,double startDragY,Point2D dragAnchor,double ellipseRadiusX,double ellipseRadiusY,
-                 Piece leftNeighbor, Piece topNeighbor, double neighborX, double neighborY){
-        this.image = image;
-        this.correctX = correctX;
-        this.correctY = correctY;
-        this.hasTopTab = topTab;
-        this.hasLeftTab = leftTab;
-        this.hasBottomTab = bottomTab;
-        this.hasRightTab = rightTab;
-        this.deskWidth = deskWidth;
-        this.deskHeight = deskHeight;
-        this.startDragX = startDragX;
-        this.startDragY = startDragY;
-        this.dragAnchor = dragAnchor;
-        this.ellipseRadiusX = topTab || bottomTab ? correctX : 0;
-        this.ellipseRadiusY = leftTab || rightTab ? correctY : 0;
-        this.leftNeighbor = leftNeighbor;
-        this.topNeighbor = topNeighbor;
+    private Piece rightNeighbor;
+    private int col;
+    private int row;
 
+
+    public void initPiece() {
+        this.ellipseRadiusX = hasTopTab || hasBottomTab ? correctX : 0;
+        this.ellipseRadiusY = hasLeftTab || hasRightTab ? correctY : 0;
         calculateTabSize();
-        initPiece();
-    }
 
-    private void initPiece() {
         Shape pieceClip = createPiece();
         pieceClip.setFill(Color.WHITE);
         pieceClip.setStroke(null);
@@ -124,7 +117,7 @@ public class Piece extends Parent {
             shape = Shape.union(shape, createRightTab());
         }
         if (hasBottomTab) {
-            shape = Shape.union(shape, createBottomTab());
+            shape = Shape.union(shape, createBottomTab() );
         }
         if (hasLeftTab) {
             shape = Shape.subtract(shape, createLeftTab());
@@ -141,7 +134,7 @@ public class Piece extends Parent {
     }
 
     private Shape createRightTab() {
-        return createPieceTab(PieceTab.builder()
+        PieceTab pieceTab = PieceTab.builder()
                 .ellipse(TabEllipse.builder()
                         .ellipseCenterX(69.5)
                         .ellipseCenterY(0)
@@ -164,11 +157,12 @@ public class Piece extends Parent {
                         .circleCenterY(14)
                         .circleRadius(6.25)
                         .build())
-                .build());
+                .build();
+        return createPieceTab(pieceTab, RIGHT);
     }
 
     private Shape createBottomTab() {
-        return createPieceTab(PieceTab.builder()
+        PieceTab pieceTab = PieceTab.builder()
                 .ellipse(TabEllipse.builder()
                         .ellipseCenterX(0)
                         .ellipseCenterY(69.5)
@@ -191,11 +185,12 @@ public class Piece extends Parent {
                         .circleCenterY(56.25)
                         .circleRadius(6.25)
                         .build())
-                .build());
+                .build();
+        return createPieceTab(pieceTab, BOTTOM);
     }
 
     private Shape createLeftTab() {
-        return createPieceTab(PieceTab.builder()
+        PieceTab pieceTab = PieceTab.builder()
                 .ellipse(TabEllipse.builder()
                         .ellipseCenterX(-31)
                         .ellipseCenterY(0)
@@ -218,11 +213,12 @@ public class Piece extends Parent {
                         .circleCenterY(14)
                         .circleRadius(6.25)
                         .build())
-                .build());
+                .build();
+        return createPieceTab(pieceTab, LEFT);
     }
 
     private Shape createTopTab() {
-        return createPieceTab(PieceTab.builder()
+        PieceTab pieceTab = PieceTab.builder()
                 .ellipse(TabEllipse.builder()
                         .ellipseCenterX(0)
                         .ellipseCenterY(-31)
@@ -245,7 +241,8 @@ public class Piece extends Parent {
                         .circleCenterY(-43.75)
                         .circleRadius(6.25)
                         .build())
-                .build());
+                .build();
+        return createPieceTab(pieceTab, TOP);
     }
 
 
@@ -258,23 +255,35 @@ public class Piece extends Parent {
         return rec;
     }
 
-    private Shape createPieceTab(PieceTab pieceTab) {
+    private Shape createPieceTab(PieceTab pieceTab, TabType tabType) {
         TabEllipse tabEllipse = pieceTab.getEllipse();
         TabRectangle tabRectangle = pieceTab.getRectangle();
         TabCircle tabCircle1 = pieceTab.getCircle1();
         TabCircle tabCircle2 = pieceTab.getCircle2();
 
         Ellipse ellipse = new Ellipse(tabEllipse.getEllipseCenterX(), tabEllipse.getEllipseCenterY(),
-                tabEllipse.getEllipseRadiusX(), tabEllipse.getEllipseRadiusY() );
+                tabEllipse.getEllipseRadiusX(), tabEllipse.getEllipseRadiusY());
         Rectangle rectangle = new Rectangle(tabRectangle.getRectangleX(), tabRectangle.getRectangleY(),
                 tabRectangle.getRectangleWidth(), tabRectangle.getRectangleHeight());
         Circle circle1 = new Circle(tabCircle1.getCircleCenterX(), tabCircle1.getCircleCenterY(), tabCircle1.getCircleRadius());
         Circle circle2 = new Circle(tabCircle2.getCircleCenterX(), tabCircle2.getCircleCenterY(), tabCircle2.getCircleRadius());
 
+        setTabParams(pieceTab, tabType);
+
         Shape tab = Shape.union(ellipse, rectangle);
-        tab = Shape.subtract(tab, circle1);
-        tab = Shape.subtract(tab, circle2);
-        return tab;
+            tab = Shape.subtract(tab, circle1);
+            tab = Shape.subtract(tab, circle2);
+            return tab;
+
+    }
+
+    private void setTabParams(PieceTab pieceTab,TabType tabType) {
+        switch (tabType) {
+            case RIGHT -> this.rightTab = new PieceTab(pieceTab);
+            case LEFT -> this.leftTab = new PieceTab(pieceTab);
+            case TOP -> this.topTab = new PieceTab(pieceTab);
+            case BOTTOM -> this.bottomTab = new PieceTab(pieceTab);
+        }
     }
 
     private void calculateTabSize() {
@@ -297,7 +306,7 @@ public class Piece extends Parent {
             ellipseRadiusX = randomValueX;
         }
 
-         if (hasLeftTab) {
+        if (hasLeftTab) {
             if (leftNeighbor != null) {
                 neighborY = leftNeighbor.ellipseRadiusY;
             }
@@ -321,13 +330,4 @@ public class Piece extends Parent {
         setDisable(true);
         toBack();
     }
-
-    public double getCorrectX() {
-        return correctX;
-    }
-
-    public double getCorrectY() {
-        return correctY;
-    }
 }
-

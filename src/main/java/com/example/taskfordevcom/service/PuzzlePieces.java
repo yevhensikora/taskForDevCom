@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,6 +30,18 @@ public class PuzzlePieces extends Application {
     private Desk desk;
     final List<Piece> pieces = new ArrayList<>();
     private static final String PICTURE_URL = "src/main/resources/images/image.png";
+    int numOfColumns = (int) (choosedImage().getWidth() / Piece.SIZE);
+    int numOfRows = (int) (choosedImage().getHeight() / Piece.SIZE);
+    private Image choosedImage() {
+        Image image;
+        try {
+            image = new Image(new FileInputStream(PICTURE_URL));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return image;
+    }
+
     public void init(Stage primaryStage) {
 
         HBox buttonBox = new HBox(8);
@@ -37,18 +50,10 @@ public class PuzzlePieces extends Application {
 
         primaryStage.setScene(new Scene(root));
 
-        Image image;
-        try {
-            image = new Image(new FileInputStream(PICTURE_URL));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        choosedImage();
 
-        int numOfColumns = (int) (image.getWidth() / Piece.SIZE);
-        int numOfRows = (int) (image.getHeight() / Piece.SIZE);
-
-        desk = new Desk(numOfColumns, numOfRows);
-        buildPieces(numOfColumns, numOfRows, image);
+        desk = new Desk(numOfRows, numOfColumns);
+        buildPieces(numOfRows, numOfColumns, choosedImage());
         desk.getChildren().addAll(pieces);
 
         buttonBox.getChildren().addAll(shuffleButton(), solveButton(), chooseImageButton(primaryStage));
@@ -70,19 +75,19 @@ public class PuzzlePieces extends Application {
         init(primaryStage);
     }
 
-    public void buildPieces(int numOfColumns, int numOfRows, Image image) {
-        for (int col = 0; col < numOfColumns; col++) {
-            for (int row = 0; row < numOfRows; row++) {
-                int x = col * Piece.SIZE;
+    public void buildPieces(int numOfRows, int numOfColumns, Image image) {
+        for (int row = 0; row < numOfRows; row++) {
+            for (int col = 0; col < numOfColumns; col++) {
                 int y = row * Piece.SIZE;
+                int x  = col * Piece.SIZE;
 
                 boolean hasTopTab = row > 0;
                 boolean hasLeftTab = col > 0;
                 boolean hasBottomTab = row < numOfRows - 1;
                 boolean hasRightTab = col < numOfColumns - 1;
 
-                Piece leftNeighbor = col > 0 ? pieces.get((col - 1) * numOfRows + row) : null;
-                Piece topNeighbor = row > 0 ? pieces.get(col * numOfRows + (row - 1)) : null;
+                Piece leftNeighbor = col > 0 ? pieces.get(row * numOfColumns + (col - 1)) : null;
+                Piece topNeighbor = row > 0 ? pieces.get((row - 1) * numOfColumns + col) : null;
 
                 final Piece piece = Piece.builder()
                         .image(image)
@@ -97,6 +102,7 @@ public class PuzzlePieces extends Application {
                         .leftNeighbor(leftNeighbor)
                         .topNeighbor(topNeighbor)
                         .build();
+                piece.initPiece();
                 pieces.add(piece);
             }
         }
@@ -105,9 +111,9 @@ public class PuzzlePieces extends Application {
     public Button chooseImageButton(Stage primaryStage) {
         Button chooseImageButton = new Button("Choose Image");
         chooseImageButton.setStyle("-fx-font-size: 2em; -fx-background-color: #830101; " +
-                                   "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
-                                   "-fx-border-width: 2px; -fx-padding: 5px 10px; " +
-                                   "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
+                "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
+                "-fx-border-width: 2px; -fx-padding: 5px 10px; " +
+                "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
         chooseImageButton.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Виберіть картинку");
@@ -126,7 +132,7 @@ public class PuzzlePieces extends Application {
                     int numOfRows1 = (int) (newImage.getHeight() / Piece.SIZE);
                     desk.setNumColumns(numOfColumns1);
                     desk.setNumRows(numOfRows1);
-                    buildPieces(numOfColumns1, numOfRows1, newImage);
+                    buildPieces(numOfRows1, numOfColumns1, newImage);
                     desk.getChildren().addAll(pieces);
                     desk.drawGrid(); // Оновити сітку
                 } catch (FileNotFoundException e) {
@@ -140,20 +146,16 @@ public class PuzzlePieces extends Application {
     public Button solveButton() {
         Button solveButton = new Button("Solve");
         solveButton.setStyle("-fx-font-size: 2em; -fx-background-color: #830101; " +
-                             "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
-                             "-fx-border-width: 2px; -fx-padding: 5px 10px;" +
-                             "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
+                "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
+                "-fx-border-width: 2px; -fx-padding: 5px 10px;" +
+                "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
         solveButton.setOnAction(actionEvent -> {
             if (timeline != null) timeline.stop();
             timeline = new Timeline();
-            for (final Piece piece : pieces) {
-                piece.setInactive();
-                timeline.getKeyFrames().add(
-                        new KeyFrame(Duration.seconds(1),
-                                new KeyValue(piece.translateXProperty(), 0),
-                                new KeyValue(piece.translateYProperty(), 0)));
-            }
-            timeline.playFromStart();
+            // Create a PuzzleSolver instance and solve the puzzle
+            PuzzleSolver puzzleSolver = new PuzzleSolver(pieces, numOfRows, numOfColumns);
+            puzzleSolver.solvePuzzle(numOfRows, numOfColumns);
+
         });
         return solveButton;
     }
@@ -164,6 +166,7 @@ public class PuzzlePieces extends Application {
                                "-fx-text-fill: #ffffff; -fx-border-color: #000000; " +
                                "-fx-border-width: 2px; -fx-padding: 5px 10px;" +
                                "-fx-effect: dropshadow( gaussian , rgba(0,0,0,0.7) , 10,0,0,1 );");
+
         shuffleButton.setOnAction(actionEvent -> {
             if (timeline != null) timeline.stop();
             timeline = new Timeline();
@@ -185,4 +188,3 @@ public class PuzzlePieces extends Application {
         return shuffleButton;
     }
 }
-

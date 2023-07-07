@@ -17,15 +17,15 @@ public class Desk extends Pane {
     private int numColumns;
     private int numRows;
 
-    public Desk(int numOfColumns, int numOfRows) {
-        this.numColumns = numOfColumns;
+    public Desk(int numOfRows, int numOfColumns) {
         this.numRows = numOfRows;
+        this.numColumns = numOfColumns;
 
         setStyle(STYLE);
-        setPrefSize(Piece.SIZE * numOfColumns, Piece.SIZE * numOfRows);
+        setPrefSize(Piece.SIZE * numColumns, Piece.SIZE * numRows);
 
-        double DESK_WIDTH = Piece.SIZE * numOfColumns;
-        double DESK_HEIGHT = Piece.SIZE * numOfRows;
+        double DESK_WIDTH = Piece.SIZE * numColumns;
+        double DESK_HEIGHT = Piece.SIZE * numRows;
 
         setPrefSize(DESK_WIDTH, DESK_HEIGHT);
         setMaxSize(DESK_WIDTH, DESK_HEIGHT);
