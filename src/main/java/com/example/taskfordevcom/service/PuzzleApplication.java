@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class PuzzlePieces extends Application {
+public class PuzzleApplication extends Application {
     private Timeline timeline;
     private Desk desk;
     final List<Piece> pieces = new ArrayList<>();
